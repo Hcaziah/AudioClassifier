@@ -14,6 +14,10 @@ class MainApplication(Tk):
 
         # creating a container
         container = Frame(self, bg="white")
+
+        container.grid_columnconfigure(0, weight=1)
+        container.grid_rowconfigure(0, weight=1)
+
         container.pack(side="top", fill="both", expand=True)
 
         menu_bar = Menu(self)
@@ -22,36 +26,44 @@ class MainApplication(Tk):
         file_menu.add_command(label="Open")
         file_menu.add_command(label="Save")
         file_menu.add_command(label="Save as...")
-        file_menu.add_command(label="Close")
+        file_menu.add_command(label="Exit", command=self.quit)
 
         edit_menu = Menu(menu_bar, tearoff=0)
         edit_menu.add_command(label="Undo")
         edit_menu.add_command(label="Redo")
+        
+        help_menu = Menu(menu_bar, tearoff=0)
+        help_menu.add_command(label="About")
 
         menu_bar.add_cascade(label="File", menu=file_menu)
         menu_bar.add_cascade(label="Edit", menu=edit_menu)
-        menu_bar.add_cascade(label="Help")
+        menu_bar.add_cascade(label="Help", menu=help_menu)
 
         self.config(menu=menu_bar)
 
-        container.grid_rowconfigure(0, weight=1)
-        container.grid_columnconfigure(0, weight=1)
-
         navigation_bar = Frame(self, bg="grey")
-        navigation_bar.pack(side='bottom', fill='x', anchor='s')
+        
+        navigation_bar.columnconfigure(0, weight=1)
+        navigation_bar.columnconfigure(1, weight=0)
+        navigation_bar.columnconfigure(2, weight=0)
+        navigation_bar.columnconfigure(3, weight=0)
+        
+        navigation_bar.rowconfigure(0, weight=1)
+        
+        navigation_bar.pack(side="top", fill="x")
 
-        splitButton = ttk.Button(
+        button_split = ttk.Button(
             navigation_bar, text="Split Audio", command=lambda: self.show_frame(SplitAudio))
-        splitButton.pack(side='right', padx=10, pady=10)
+        button_split.grid(row=0, column=2, padx=5, pady=10, sticky="e")
 
-        classifyButton = ttk.Button(
+        button_classify = ttk.Button(
             navigation_bar, text="Classify Audio", command=lambda: self.show_frame(ClassifyAudio))
-        classifyButton.pack(side='right', padx=10, pady=10)
+        button_classify.grid(row=0, column=3, padx=5, pady=10, sticky="e")
 
-        mainButton = ttk.Button(
+        button_main = ttk.Button(
             navigation_bar, text="Main Page", command=lambda: self.show_frame(MainPage))
-        mainButton.pack(side='right', padx=10, pady=10)
-
+        button_main.grid(row=0, column=1, padx=5, pady=10, sticky="e")
+        
         # initializing frames to an empty array
         self.frames = {}
 
@@ -68,7 +80,7 @@ class MainApplication(Tk):
             frame.grid(row=0, column=0, sticky="nsew")
         self.show_frame(MainPage)
 
-    def show_frame(self, cont, title=None):
+    def show_frame(self, cont):
         frame = self.frames[cont]
         frame.tkraise()
 
@@ -84,53 +96,75 @@ class SplitAudio(Frame):
     def __init__(self, parent, controller) -> None:
         Frame.__init__(self, parent)
 
-        # Add a split audio button
-        self.split_audio_button = ttk.Button(
-            self, text="Split Audio", command=self.start_split_audio_thread, state="disabled")
-        self.split_audio_button.pack(side='bottom', fill='x', padx=10, pady=10)
+        # Set up the main grid
+        self.columnconfigure(0, weight=1)
 
-        # Add output folder frame
-        out_dir_frame = Frame(self)
-        out_dir_frame.pack(side='bottom', fill="x", padx=10)
+        self.rowconfigure(0, weight=3, minsize=100)
+        self.rowconfigure(1, weight=1, minsize=50)
+        self.rowconfigure(2, weight=1)
 
-        output_dir_button = ttk.Button(
-            out_dir_frame, text="Output Folder", command=self.open_folder, width=15)
-        output_dir_button.pack(side='right', padx=2, pady=10)
+        infoFrame = Frame(self)
+
+        infoFrame.columnconfigure(0, weight=1)
+        infoFrame.columnconfigure(1, weight=1)
+
+        infoFrame.rowconfigure(0, weight=1)
+        infoFrame.rowconfigure(1, weight=1)
+
+        ##################
+        # FILE I/O FRAME #
+        ##################
+        ioFrame = Frame(self)
+
+        ioFrame.columnconfigure(0, weight=0)
+        ioFrame.columnconfigure(1, weight=1)
+        ioFrame.columnconfigure(2, weight=0)
+
+        ioFrame.rowconfigure(0, weight=1)
+        ioFrame.rowconfigure(1, weight=1)
+
+        ioFrame.grid(row=1, column=0)
+
+        button_output_select = ttk.Button(
+            ioFrame, text="Output Folder", command=self.open_folder, width=15)
+        button_output_select.grid(row=1, column=2, padx=10, pady=10)
 
         # Add a output folder dir path label
-        out_dir_label = ttk.Label(
-            out_dir_frame, text="Output Folder:", width=15)
-        out_dir_label.pack(side='left', padx=2, pady=10)
+        label_output_path = ttk.Label(
+            ioFrame, text="Output Folder:", width=15)
+        label_output_path.grid(row=1, column=0, padx=10, pady=10)
 
-        self.out_path_var = StringVar(out_dir_frame)
-        self.out_path_label = ttk.Entry(
-            out_dir_frame, text=self.out_path_var, state="readonly")
-        self.out_path_label.pack(fill='x', padx=2, pady=10)
+        self.string_output_path = StringVar(ioFrame)
 
-        # Add frame for dirs
-        in_dir_frame = Frame(self)
-        in_dir_frame.pack(side='bottom', fill="x", padx=10)
+        self.entry_output_path = ttk.Entry(
+            ioFrame, text=self.string_output_path, state="readonly", width=1000)
+        self.entry_output_path.grid(row=1, column=1, padx=10, pady=10)
 
         # Add a input file button
-        input_file_button = ttk.Button(
-            in_dir_frame, text="Open File", command=self.open_file, width=15)
-        input_file_button.pack(side='right', padx=2, pady=10)
+        button_input_select = ttk.Button(
+            ioFrame, text="Open File", command=self.open_file, width=15)
+        button_input_select.grid(row=0, column=2, padx=10, pady=10)
 
         # Add a dir path label
-        dir_label = ttk.Label(in_dir_frame, text="Audio File:", width=15)
-        dir_label.pack(side='left', padx=2, pady=10)
+        label_input_filename = ttk.Label(ioFrame, text="Audio File:", width=15)
+        label_input_filename.grid(row=0, column=0, padx=10, pady=10)
 
-        self.in_path_var = StringVar(in_dir_frame)
-        self.path_label = ttk.Entry(
-            in_dir_frame, text=self.in_path_var, state="readonly")
-        self.path_label.pack(fill='x', padx=2, pady=10)
+        self.string_input_path = StringVar(ioFrame)
+
+        self.entry_input_path = ttk.Entry(
+            ioFrame, text=self.string_input_path, state="readonly", width=1000)
+        self.entry_input_path.grid(row=0, column=1, padx=10, pady=10)
+
+        # Add a split audio button
+        self.split_audio_button = ttk.Button(self, text="Split Audio", command=self.start_split_audio_thread, state="disabled", width=150)
+        self.split_audio_button.grid(row=2, column=0, padx=10, pady=10)
 
     def open_file(self):
         self.audio_file = filedialog.askopenfilename(initialdir=".", title="Select Audio File", filetypes=(
             ("mp3 files", "*.mp3"), ("wav files", "*.wav"), ("all files", "*.*")))
-        self.in_path_var.set(self.audio_file)
+        self.string_input_path.set(self.audio_file)
 
-        if (self.out_path_var.get() != "" and self.in_path_var.get() != ""):
+        if (self.string_output_path.get() != "" and self.string_input_path.get() != ""):
             self.split_audio_button.config(state='normal')
         else:
             self.split_audio_button.config(state='disabled')
@@ -138,8 +172,8 @@ class SplitAudio(Frame):
     def open_folder(self):
         self.output_folder = filedialog.askdirectory(
             initialdir='.', title="Select Output Folder")
-        self.out_path_var.set(self.output_folder)
-        if (self.out_path_var.get() != "" and self.in_path_var.get() != ""):
+        self.string_output_path.set(self.output_folder)
+        if (self.string_output_path.get() != "" and self.string_input_path.get() != ""):
             self.split_audio_button.config(state='normal')
         else:
             self.split_audio_button.config(state='disabled')
@@ -151,7 +185,7 @@ class SplitAudio(Frame):
     def split_audio(self):
         folder_name = self.audio_file.split("/")[-1].split(".")[0]
 
-        pathlib.Path(self.out_path_var.get() + "/" + folder_name).mkdir(
+        pathlib.Path(self.string_output_path.get() + "/" + folder_name).mkdir(
             parents=True, exist_ok=True)
 
         self.split_audio_button.config(
@@ -176,7 +210,7 @@ class SplitAudio(Frame):
             audio_chunk = silent_chunk + chunk + silent_chunk
 
             audio_chunk.export(
-                f"{self.out_path_var.get()}/{folder_name}/chunk{i}.mp3")
+                f"{self.string_output_path.get()}/{folder_name}/chunk{i}.mp3")
 
         self.split_audio_button.config(text="Split Audio", state="normal")
         self.update()
