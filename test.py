@@ -1,26 +1,18 @@
-import tkinter as tk
+import os
+from ClassifyAudioChunks import AudioQueue
 
-root = tk.Tk()
+script_directory = os.path.dirname(os.path.abspath(__file__)) + "\\audio\\test"
+dir_contents = []
 
-# configure the grid
-root.columnconfigure(0, weight=0, minsize=75)
-root.columnconfigure(1, weight=0, minsize=150)
-root.columnconfigure(2, weight=0, minsize=75)
-root.rowconfigure(0, weight=1)
-root.rowconfigure(1, weight=1)
+print(script_directory)
 
-# create widgets and place them in the grid
-label1 = tk.Label(root, text="Widget 1")
-label1.grid(row=0, column=0, padx=5, pady=5)
-label2 = tk.Label(root, text="Widget 2")
-label2.grid(row=0, column=1, padx=5, pady=5)
-label3 = tk.Label(root, text="Widget 3")
-label3.grid(row=0, column=2, padx=5, pady=5)
-label4 = tk.Label(root, text="Widget 4")
-label4.grid(row=1, column=0, padx=5, pady=5)
-label5 = tk.Label(root, text="Widget 5")
-label5.grid(row=1, column=1, padx=5, pady=5)
-label6 = tk.Label(root, text="Widget 6")
-label6.grid(row=1, column=2, padx=5, pady=5)
+for subdir, dirs, files in os.walk(script_directory):
+    dir_contents = [subdir, dirs, files]
 
-root.mainloop()
+
+print(dir_contents)
+
+
+aq = AudioQueue(script_directory)
+
+print(aq.audio_list)
