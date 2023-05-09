@@ -1,11 +1,10 @@
-
 import logging
 from tkinter import Tk, ttk, Frame
 from ClassifyAudioChunks import ClassifyAudioChunks
 from AudioChunkGenerator import AudioChunkGenerator
 
 
-logging.basicConfig(
+logging.basicConfig(   
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(message)s",
     handlers=[logging.FileHandler("app.log"), logging.StreamHandler()],
@@ -74,7 +73,6 @@ class MainApplication(Tk):
 
             frame.grid(row=0, column=0, sticky="nsew")
         self.show_frame(MainPage)
-        print("heloo")
 
     def show_frame(self, cont) -> None:
         """

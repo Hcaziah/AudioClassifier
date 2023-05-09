@@ -61,7 +61,8 @@ class AudioChunkGenerator(Frame):
         for option in checkbox_options:
             var = StringVar()
             checkbox = ttk.Checkbutton(
-                info_frame, text=option, variable=var, onvalue="on", offvalue="off")
+                info_frame, text=option, variable=var, onvalue="on", offvalue="off"
+            )
 
             checkbox.pack()
             self.checkbox_values[option] = var
@@ -87,80 +88,86 @@ class AudioChunkGenerator(Frame):
         io_frame.grid(row=1, column=0)
 
         button_output_select = ttk.Button(
-            io_frame, text="Select output", command=self.open_folder, width=15)
+            io_frame, text="Select output", command=self.open_folder, width=15
+        )
         button_output_select.grid(row=1, column=2, padx=10, pady=10)
 
         # Add a output folder dir path label
-        label_output_path = ttk.Label(
-            io_frame, text="Output Folder:", width=15)
+        label_output_path = ttk.Label(io_frame, text="Output Folder:", width=15)
         label_output_path.grid(row=1, column=0, padx=10, pady=10)
 
         self.string_output_path = StringVar(io_frame)
 
         self.entry_output_path = ttk.Entry(
-            io_frame, text=self.string_output_path, state="readonly", width=1000)
+            io_frame, text=self.string_output_path, state="readonly", width=1000
+        )
         self.entry_output_path.grid(row=1, column=1, padx=10, pady=10)
 
         # Add a input file button
         button_input_select = ttk.Button(
-            io_frame, text="Open File", command=self.open_file, width=15)
+            io_frame, text="Open File", command=self.open_file, width=15
+        )
         button_input_select.grid(row=0, column=2, padx=10, pady=10)
 
         # Add a dir path label
-        label_input_filename = ttk.Label(
-            io_frame, text="Audio File:", width=15)
+        label_input_filename = ttk.Label(io_frame, text="Audio File:", width=15)
         label_input_filename.grid(row=0, column=0, padx=10, pady=10)
 
         self.string_input_path = StringVar(io_frame)
 
         self.entry_input_path = ttk.Entry(
-            io_frame, text=self.string_input_path, state="readonly", width=1000)
+            io_frame, text=self.string_input_path, state="readonly", width=1000
+        )
         self.entry_input_path.grid(row=0, column=1, padx=10, pady=10)
 
         # Add a split audio button
         self.split_audio_button = ttk.Button(
-            self, text="Split Audio", command=self.start_split_audio_thread, state="disabled", width=150)
+            self,
+            text="Split Audio",
+            command=self.start_split_audio_thread,
+            state="disabled",
+            width=150,
+        )
         self.split_audio_button.grid(row=2, column=0, padx=10, pady=10)
 
     def open_file(self) -> str:
-        """
-        open_file open_file is a function for opening a file.
-        """
-        self.audio_file = filedialog.askopenfilename(initialdir=".", title="Select Audio File", filetypes=(
-            ("mp3 files", "*.mp3"), ("wav files", "*.wav"), ("all files", "*.*")))
+        self.audio_file = filedialog.askopenfilename(
+            initialdir=".",
+            title="Select Audio File",
+            filetypes=(
+                ("mp3 files", "*.mp3"),
+                ("wav files", "*.wav"),
+                ("all files", "*.*"),
+            ),
+        )
         self.string_input_path.set(self.audio_file)
 
-        if (self.string_output_path.get() != "" and self.string_input_path.get() != ""):
-            self.split_audio_button.config(state='normal')
+        if self.string_output_path.get() != "" and self.string_input_path.get() != "":
+            self.split_audio_button.config(state="normal")
         else:
-            self.split_audio_button.config(state='disabled')
+            self.split_audio_button.config(state="disabled")
 
     def open_folder(self) -> str:
-        """
-        open_folder open_folder is a function for opening a folder.
-        """
         self.output_folder = filedialog.askdirectory(
-            initialdir='.', title="Select Output Folder")
+            initialdir=".", title="Select Output Folder"
+        )
         self.string_output_path.set(self.output_folder)
-        if (self.string_output_path.get() != "" and self.string_input_path.get() != ""):
-            self.split_audio_button.config(state='normal')
+        if self.string_output_path.get() != "" and self.string_input_path.get() != "":
+            self.split_audio_button.config(state="normal")
         else:
-            self.split_audio_button.config(state='disabled')
+            self.split_audio_button.config(state="disabled")
 
     def start_split_audio_thread(self) -> None:
-        """
-        start_split_audio_thread start_split_audio_thread is a function for starting a split audio thread.
-        """
         threading.Thread(target=self._split_audio).start()
 
     def _split_audio(self) -> None:
         folder_name = self.audio_file.split("/")[-1].split(".")[0]
 
         pathlib.Path(self.string_output_path.get() + "/" + folder_name).mkdir(
-            parents=True, exist_ok=True)
+            parents=True, exist_ok=True
+        )
 
-        self.split_audio_button.config(
-            text="Loading file...", state="disabled")
+        self.split_audio_button.config(text="Loading file...", state="disabled")
         self.update()
 
         audio = AudioSegment.from_file(self.audio_file)
@@ -168,11 +175,11 @@ class AudioChunkGenerator(Frame):
         self.split_audio_button.config(text="Splitting...", state="disabled")
         self.update()
 
-        chunks = split_on_silence(
-            audio, min_silence_len=750, silence_thresh=-48)
+        chunks = split_on_silence(audio, min_silence_len=500, silence_thresh=-48)
 
         self.split_audio_button.config(
-            text=f"Exporting {len(chunks)} chunks...", state="disabled")
+            text=f"Exporting {len(chunks)} chunks...", state="disabled"
+        )
         self.update()
 
         for i, chunk in enumerate(chunks):
@@ -181,7 +188,8 @@ class AudioChunkGenerator(Frame):
             audio_chunk = silent_chunk + chunk + silent_chunk
 
             audio_chunk.export(
-                f"{self.string_output_path.get()}/{folder_name}/chunk{i}.mp3")
+                f"{self.string_output_path.get()}/{folder_name}/chunk{str(i).zfill(4)}.mp3"
+            )
 
         self.split_audio_button.config(text="Split Audio", state="normal")
         self.update()

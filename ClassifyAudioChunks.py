@@ -1,22 +1,19 @@
 import os
 import threading
 from tkinter import Frame, ttk
-from IOController import FileController, IOController
+from IOController import FileController
 import simpleaudio
-
-IOC = IOController()
 
 
 class AudioQueue:
-    def __init__(self, folder_path) -> None:
+    def __init__(self, folder_path=None) -> None:
         self.folder_path = folder_path
         self.current_index = 0
         self.audio_list = []
         self._playback = None
 
         for file in os.listdir(self.folder_path):
-            self.audio_list.append(FileController(
-                f'{self.folder_path}\\{file}'))
+            self.audio_list.append(FileController(f"{self.folder_path}\\{file}"))
 
     def play_current(self):
         segment = self.audio_list[self.current_index].audio_file
@@ -25,7 +22,7 @@ class AudioQueue:
             segment.raw_data,
             bytes_per_sample=segment.sample_width,
             sample_rate=segment.frame_rate,
-            num_channels=segment.channels
+            num_channels=segment.channels,
         )
 
     def stop_current(self) -> None:
@@ -81,30 +78,36 @@ class ClassifyAudioChunks(Frame):
 
         # Add buttons
         button_frame = Frame(self)
-        button_frame.pack(side='bottom', fill='x', padx=50, pady=10)
+        button_frame.pack(side="bottom", fill="x", padx=50, pady=10)
         self.button_next = ttk.Button(
-            button_frame, text="->", command=self.next, width=5)
+            button_frame, text="->", command=self.next, width=5
+        )
         self.button_prev = ttk.Button(
-            button_frame, text="<-", command=self.prev, width=5)
+            button_frame, text="<-", command=self.prev, width=5
+        )
         self.button_replay = ttk.Button(
-            button_frame, text="Play again", command=self.play_again, width=10)
+            button_frame, text="Play again", command=self.play_again, width=10
+        )
 
-        self.button_next.pack(side='right', padx=10)
-        self.button_prev.pack(side='left', padx=10)
-        self.button_replay.pack(side='bottom', fill='x')
+        self.button_next.pack(side="right", padx=10)
+        self.button_prev.pack(side="left", padx=10)
+        self.button_replay.pack(side="bottom", fill="x")
 
         # Add text box
         self.textbox = ttk.Entry(self, text="Audio File: ")
-        self.textbox.pack(side='bottom', fill='x', padx=10, pady=10)
+        self.textbox.pack(side="bottom", fill="x", padx=10, pady=10)
 
         controller.bind("<Return>", self.next)
 
-        controller.bind("<KeyPress-Shift_L>",
-                        lambda event: setattr(self, 'is_shift_pressed', True))
-        controller.bind("<KeyRelease-Shift_L>",
-                        lambda event: setattr(self, 'is_shift_pressed', False))
+        controller.bind(
+            "<KeyPress-Shift_L>", lambda event: setattr(self, "is_shift_pressed", True)
+        )
+        controller.bind(
+            "<KeyRelease-Shift_L>",
+            lambda event: setattr(self, "is_shift_pressed", False),
+        )
 
-        self.audio_queue = AudioQueue("audio/longtest")
+        self.audio_queue = AudioQueue()
 
         self.thread = None
 
@@ -150,13 +153,13 @@ class ClassifyAudioChunks(Frame):
         update() function to refresh the user interface.
         """
         if self.audio_queue.current_index == 0:
-            self.button_prev.config(state='disabled')
+            self.button_prev.config(state="disabled")
         else:
-            self.button_prev.config(state='enabled')
+            self.button_prev.config(state="enabled")
 
         if self.audio_queue.current_index > len(self.audio_queue.audio_list) - 2:
-            self.button_next.config(state='disabled')
+            self.button_next.config(state="disabled")
         else:
-            self.button_next.config(state='enabled')
+            self.button_next.config(state="enabled")
 
         self.update()
