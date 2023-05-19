@@ -2,6 +2,7 @@ import os
 import threading
 from tkinter import Frame, ttk
 from IOController import FileController
+from CSVController import CSVController
 import simpleaudio
 
 
@@ -26,7 +27,6 @@ class AudioQueue:
         )
 
     def stop_current(self) -> None:
-        print(self._playback)
         if self._playback:
             self._playback.stop()
 
@@ -72,6 +72,8 @@ class ClassifyAudioChunks(Frame):
 
     def __init__(self, parent, controller=None) -> None:
         Frame.__init__(self, parent)
+
+        self.CSV_CONTROL = CSVController()
 
         self.current_index = 0
         self.is_shift_pressed = False
@@ -124,7 +126,7 @@ class ClassifyAudioChunks(Frame):
             return
 
         self.update_button_states()
-        threading.Thread(target=self.audio_queue.next).start()
+        self.thread = threading.Thread(target=self.audio_queue.next).start()
         print(self.audio_queue.current_index)
 
     def prev(self):
@@ -134,14 +136,14 @@ class ClassifyAudioChunks(Frame):
         If the shift key is pressed, it will go to the previous unclassified audio file.
         """
         self.update_button_states()
-        threading.Thread(target=self.audio_queue.prev).start()
+        self.thread = threading.Thread(target=self.audio_queue.prev).start()
         print(self.audio_queue.current_index)
 
     def play_again(self):
         """
         Plays the current audio file again.
         """
-        threading.Thread(target=self.audio_queue.play_current).start()
+        self.thread = threading.Thread(target=self.audio_queue.play_current).start()
 
     def update_button_states(self):
         """

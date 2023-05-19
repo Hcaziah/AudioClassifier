@@ -1,7 +1,7 @@
 import os
 from ClassifyAudioChunks import AudioQueue
 
-script_directory = os.path.dirname(os.path.abspath(__file__)) + "\\audio\\test"
+script_directory = os.path.dirname(os.path.abspath(__file__)) + "/audio/test"
 dir_contents = []
 
 print(script_directory)
