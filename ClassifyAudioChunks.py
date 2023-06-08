@@ -3,7 +3,8 @@ import threading
 from tkinter import Frame, ttk
 from IOController import FileController
 from CSVController import CSVController
-import simpleaudio
+
+# import simpleaudio
 
 
 class AudioQueue:
@@ -19,12 +20,12 @@ class AudioQueue:
     def play_current(self):
         segment = self.audio_list[self.current_index].audio_file
 
-        self._playback = simpleaudio.play_buffer(
-            segment.raw_data,
-            bytes_per_sample=segment.sample_width,
-            sample_rate=segment.frame_rate,
-            num_channels=segment.channels,
-        )
+        # self._playback = simpleaudio.play_buffer(
+        #     segment.raw_data,
+        #     bytes_per_sample=segment.sample_width,
+        #     sample_rate=segment.frame_rate,
+        #     num_channels=segment.channels,
+        # )
 
     def stop_current(self) -> None:
         if self._playback:
