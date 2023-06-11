@@ -1,10 +1,10 @@
 import logging
 from tkinter import Tk, ttk, Frame
-from ClassifyAudioChunks import ClassifyAudioChunks
-from AudioChunkGenerator import AudioChunkGenerator
+from classify_audio_chunks import ClassifyAudioChunks
+from audio_chunk_generator import AudioChunkGenerator
 
 
-logging.basicConfig(   
+logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(message)s",
     handlers=[logging.FileHandler("app.log"), logging.StreamHandler()],
@@ -47,15 +47,22 @@ class MainApplication(Tk):
         navigation_bar.pack(side="top", fill="x")
 
         button_classify = ttk.Button(
-            navigation_bar, text="Classify Audio", command=lambda: self.show_frame(ClassifyAudioChunks))
+            navigation_bar,
+            text="Classify Audio",
+            command=lambda: self.show_frame(ClassifyAudioChunks),
+        )
         button_classify.grid(row=0, column=3, padx=5, pady=10, sticky="e")
 
         button_split = ttk.Button(
-            navigation_bar, text="Split Audio", command=lambda: self.show_frame(AudioChunkGenerator))
+            navigation_bar,
+            text="Split Audio",
+            command=lambda: self.show_frame(AudioChunkGenerator),
+        )
         button_split.grid(row=0, column=2, padx=5, pady=10, sticky="e")
 
         button_main = ttk.Button(
-            navigation_bar, text="Main Page", command=lambda: self.show_frame(MainPage))
+            navigation_bar, text="Main Page", command=lambda: self.show_frame(MainPage)
+        )
         button_main.grid(row=0, column=1, padx=5, pady=10, sticky="e")
 
         # initializing frames to an empty array
@@ -99,8 +106,9 @@ class MainPage(Frame):
 
     def __init__(self, parent, controller=None) -> None:
         Frame.__init__(self, parent)
-        main_menu = ttk.Label(self, text="Main Page",
-                              font=("Helvetica", 18), padding=10)
+        main_menu = ttk.Label(
+            self, text="Main Page", font=("Helvetica", 18), padding=10
+        )
         main_menu.pack()
 
 

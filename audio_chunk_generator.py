@@ -9,9 +9,10 @@ class AudioChunkGenerator(Frame):
     """
     A class for generating audio chunks.
 
-    This class provides a graphical user interface for selecting an audio file and splitting it into smaller chunks.
-    The output folder for the chunks can be selected by the user. The class also provides options for customizing the
-    splitting process, such as selecting the size of each chunk.
+    This class provides a graphical user interface for selecting an audio file and splitting
+    it into smaller chunks. The output folder for the chunks can be selected by the user.
+    The class also provide options for customizing the splitting process, such as selecting
+    the size of each chunk.
 
     Attributes
     ----------
@@ -124,13 +125,21 @@ class AudioChunkGenerator(Frame):
         self.split_audio_button = ttk.Button(
             self,
             text="Split Audio",
-            command=self.start_split_audio_thread,
+            command=self._start_split_audio_thread,
             state="disabled",
             width=150,
         )
         self.split_audio_button.grid(row=2, column=0, padx=10, pady=10)
 
     def open_file(self) -> str:
+        """
+        open_file opens a dialog for selecting an audio file.
+
+        Returns
+        -------
+        str
+            The path to the selected audio file.
+        """
         self.audio_file = filedialog.askopenfilename(
             initialdir=".",
             title="Select Audio File",
@@ -148,6 +157,14 @@ class AudioChunkGenerator(Frame):
             self.split_audio_button.config(state="disabled")
 
     def open_folder(self) -> str:
+        """
+        open_folder opens a dialog for selecting the output folder.
+
+        Returns
+        -------
+        str
+            The path to the selected output folder.
+        """
         self.output_folder = filedialog.askdirectory(
             initialdir=".", title="Select Output Folder"
         )
@@ -157,7 +174,7 @@ class AudioChunkGenerator(Frame):
         else:
             self.split_audio_button.config(state="disabled")
 
-    def start_split_audio_thread(self) -> None:
+    def _start_split_audio_thread(self) -> None:
         threading.Thread(target=self._split_audio).start()
 
     def _split_audio(self) -> None:

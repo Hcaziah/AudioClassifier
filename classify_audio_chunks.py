@@ -1,13 +1,16 @@
 import os
 import threading
 from tkinter import Frame, ttk
-from IOController import FileController
-from CSVController import CSVController
-
-# import simpleaudio
+import simpleaudio
+from file_controller import FileController
+from csv_controller import CSVController
 
 
 class AudioQueue:
+    """
+    A class for managing a queue of audio files.
+    """
+
     def __init__(self, folder_path=None) -> None:
         self.folder_path = folder_path
         self.current_index = 0
@@ -18,26 +21,48 @@ class AudioQueue:
             self.audio_list.append(FileController(f"{self.folder_path}\\{file}"))
 
     def play_current(self):
+        """
+        play_current is a method that plays the current audio file.
+        """
         segment = self.audio_list[self.current_index].audio_file
 
-        # self._playback = simpleaudio.play_buffer(
-        #     segment.raw_data,
-        #     bytes_per_sample=segment.sample_width,
-        #     sample_rate=segment.frame_rate,
-        #     num_channels=segment.channels,
-        # )
+        self._playback = simpleaudio.play_buffer(
+            segment.raw_data,
+            bytes_per_sample=segment.sample_width,
+            sample_rate=segment.frame_rate,
+            num_channels=segment.channels,
+        )
 
     def stop_current(self) -> None:
+        """
+        stop_current is a method that stops the current audio file.
+        """
         if self._playback:
             self._playback.stop()
 
-    def next(self):
+    def next(self) -> FileController:
+        """
+        next is a method that goes to the next audio file.
+
+        Returns
+        -------
+        FileControler
+            The next audio file.
+        """
         self.stop_current()
         self.current_index += 1
         self.play_current()
         return self.audio_list[self.current_index]
 
     def prev(self) -> int:
+        """
+        prev is a method that goes to the previous audio file.
+
+        Returns
+        -------
+        FileControler
+            The next audio file.
+        """
         self.stop_current()
         self.current_index -= 1
         self.play_current()
@@ -49,8 +74,8 @@ class ClassifyAudioChunks(Frame):
     """
     A class for classifying audio files.
 
-    This class represents a GUI interface for classifying audio files. It inherits from the tkinter.Frame
-    class and takes two parameters in the constructor: parent and controller.
+    This class represents a GUI interface for classifying audio files. It inherits from the
+    tkinter.Frame class and takes two parameters in the constructor: parent and controller.
 
     Attributes
     ----------
@@ -74,7 +99,7 @@ class ClassifyAudioChunks(Frame):
     def __init__(self, parent, controller=None) -> None:
         Frame.__init__(self, parent)
 
-        self.CSV_CONTROL = CSVController()
+        self.csv_controller = CSVController()
 
         self.current_index = 0
         self.is_shift_pressed = False
@@ -112,8 +137,6 @@ class ClassifyAudioChunks(Frame):
 
         self.audio_queue = AudioQueue()
 
-        self.thread = None
-
         self.update_button_states()
 
     def next(self):
@@ -127,7 +150,7 @@ class ClassifyAudioChunks(Frame):
             return
 
         self.update_button_states()
-        self.thread = threading.Thread(target=self.audio_queue.next).start()
+        threading.Thread(target=self.audio_queue.next).start()
         print(self.audio_queue.current_index)
 
     def prev(self):
@@ -137,23 +160,25 @@ class ClassifyAudioChunks(Frame):
         If the shift key is pressed, it will go to the previous unclassified audio file.
         """
         self.update_button_states()
-        self.thread = threading.Thread(target=self.audio_queue.prev).start()
+        threading.Thread(target=self.audio_queue.prev).start()
         print(self.audio_queue.current_index)
 
     def play_again(self):
         """
         Plays the current audio file again.
         """
-        self.thread = threading.Thread(target=self.audio_queue.play_current).start()
+        threading.Thread(target=self.audio_queue.play_current).start()
 
     def update_button_states(self):
         """
-        Update the state of the 'previous' and 'next' buttons based on the current position in the audio queue.
+        Update the state of the 'previous' and 'next' buttons based on the current position in
+        the audio queue.
 
-        This method checks the current index of the audio queue and enables or disables the 'previous' and 'next'
-        buttons accordingly. If the current index is at the beginning of the queue, the 'previous' button is disabled.
-        If the current index is at the end of the queue, the 'next' button is disabled. The method also calls the
-        update() function to refresh the user interface.
+        This method checks the current index of the audio queue and enables or disables the
+        'previous' and 'next' buttons accordingly.
+        If the current index is at the beginningof the queue, the 'previous' button is disabled.
+        If the current index is at the end of the queue, the 'next' button is disabled.
+        The method also calls the update() function to refresh the user interface.
         """
         if self.audio_queue.current_index == 0:
             self.button_prev.config(state="disabled")

@@ -1,6 +1,4 @@
 import pathlib
-import os
-from tkinter import filedialog
 from pydub import AudioSegment
 
 
@@ -30,14 +28,14 @@ class FileController:
         self.file_name_full = self.file_name + "." + self.file_extension
         # self.file_size = os.path.getsize(self.file_path)
 
-        isAudioFile = self.file_extension in ["wav", "mp3"]
+        is_audio_file = self.file_extension in ["wav", "mp3"]
         self.audio_file = (
             AudioSegment.from_file(self.file_path, self.file_extension)
-            if isAudioFile
+            if is_audio_file
             else None
         )
         self.audio_length = (
-            self.audio_file.duration_seconds if isAudioFile else None
+            self.audio_file.duration_seconds if is_audio_file else None
         )  # ms
 
     def __str__(self) -> str:
