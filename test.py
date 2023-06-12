@@ -27,4 +27,4 @@ csv.open_folder("audio/stream0")
 print(csv.csv_file.file_name_full)
 
 
-csv.update_csv(4, "2")
+csv.set_classification(4, "2")

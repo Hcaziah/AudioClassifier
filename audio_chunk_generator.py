@@ -168,6 +168,7 @@ class AudioChunkGenerator(Frame):
         self.output_folder = filedialog.askdirectory(
             initialdir=".", title="Select Output Folder"
         )
+
         self.string_output_path.set(self.output_folder)
         if self.string_output_path.get() != "" and self.string_input_path.get() != "":
             self.split_audio_button.config(state="normal")
@@ -205,7 +206,7 @@ class AudioChunkGenerator(Frame):
             audio_chunk = silent_chunk + chunk + silent_chunk
 
             audio_chunk.export(
-                f"{self.string_output_path.get()}/{folder_name}/chunk{str(i).zfill(4)}.mp3"
+                f"{self.string_output_path.get()}/{folder_name}/{str(i).zfill(4)}.mp3"
             )
 
         self.split_audio_button.config(text="Split Audio", state="normal")

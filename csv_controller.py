@@ -10,8 +10,8 @@ class CSVController:
     for the purpose of storing the classification of audio files.
     """
 
-    def __init__(self):
-        self.folder = None
+    def __init__(self, folder_path=None) -> None:
+        self.folder = folder_path
         self.csv_file = None
         self.folder_files = None
         self._csv_header = [
@@ -87,7 +87,7 @@ class CSVController:
                     )
                 )
 
-    def update_csv(self, index, classification) -> None:
+    def set_classification(self, index, classification) -> None:
         """
         update_csv is a method that updates the classification of a file in the csv file
 
@@ -103,22 +103,36 @@ class CSVController:
         FileNotFoundError
             If the csv file is not found.
         """
-        if self.csv_file:
-            with open(
-                self.csv_file.file_path, "r", encoding="utf8", newline=""
-            ) as csvfile:
-                reader = csv.reader(csvfile)
-                data = list(reader)
 
-            print(data)
+        if index == 0:
+            return
 
-            data[index][1] = classification
+        with open(self.csv_file.file_path, "r", encoding="utf8", newline="") as csvfile:
+            reader = csv.reader(csvfile)
+            data = list(reader)
 
-            with open(
-                self.csv_file.file_path, "w", encoding="utf8", newline=""
-            ) as csvfile:
-                writer = csv.writer(csvfile)
-                writer.writerows(data)
+        data[index][1] = classification
 
-        else:
-            raise FileNotFoundError()
+        with open(self.csv_file.file_path, "w", encoding="utf8", newline="") as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerows(data)
+
+    def get_classification(self, index) -> str:
+        """
+        get_csv_data is a method that returns the classification of a file in the csv file
+
+        Parameters
+        ----------
+        index : int
+            The index of the file in the csv file.
+
+        Returns
+        -------
+        str
+            The classification of the file.
+        """
+        with open(self.csv_file.file_path, "r", encoding="utf8", newline="") as csvfile:
+            reader = csv.reader(csvfile)
+            data = list(reader)
+
+        return data[index][1]

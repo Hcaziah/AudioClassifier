@@ -1,6 +1,6 @@
 import os
 import threading
-from tkinter import Frame, ttk
+from tkinter import Frame, ttk, filedialog, StringVar
 import simpleaudio
 from file_controller import FileController
 from csv_controller import CSVController
@@ -13,18 +13,21 @@ class AudioQueue:
 
     def __init__(self, folder_path=None) -> None:
         self.folder_path = folder_path
-        self.current_index = 0
+        self.current_index = 1
         self.audio_list = []
         self._playback = None
 
         for file in os.listdir(self.folder_path):
+            if file.endswith(".csv"):
+                continue
+
             self.audio_list.append(FileController(f"{self.folder_path}\\{file}"))
 
-    def play_current(self):
+    def play_current(self) -> None:
         """
         play_current is a method that plays the current audio file.
         """
-        segment = self.audio_list[self.current_index].audio_file
+        segment = self.audio_list[self.current_index - 1].audio_file
 
         self._playback = simpleaudio.play_buffer(
             segment.raw_data,
@@ -40,34 +43,21 @@ class AudioQueue:
         if self._playback:
             self._playback.stop()
 
-    def next(self) -> FileController:
+    def next(self) -> None:
         """
         next is a method that goes to the next audio file.
-
-        Returns
-        -------
-        FileControler
-            The next audio file.
         """
         self.stop_current()
         self.current_index += 1
         self.play_current()
-        return self.audio_list[self.current_index]
 
     def prev(self) -> int:
         """
         prev is a method that goes to the previous audio file.
-
-        Returns
-        -------
-        FileControler
-            The next audio file.
         """
         self.stop_current()
         self.current_index -= 1
         self.play_current()
-
-        return self.audio_list[self.current_index]
 
 
 class ClassifyAudioChunks(Frame):
@@ -99,22 +89,27 @@ class ClassifyAudioChunks(Frame):
     def __init__(self, parent, controller=None) -> None:
         Frame.__init__(self, parent)
 
-        self.csv_controller = CSVController()
+        self.controller = controller
 
-        self.current_index = 0
+        self.audio_queue = None
+        self.csv_controller = None
+
         self.is_shift_pressed = False
 
         # Add buttons
         button_frame = Frame(self)
         button_frame.pack(side="bottom", fill="x", padx=50, pady=10)
+
         self.button_next = ttk.Button(
             button_frame, text="->", command=self.next, width=5
         )
+        self.allow_next = True
         self.button_prev = ttk.Button(
             button_frame, text="<-", command=self.prev, width=5
         )
+        self.allow_prev = False
         self.button_replay = ttk.Button(
-            button_frame, text="Play again", command=self.play_again, width=10
+            button_frame, text="Select folder", command=self.open_folder, width=10
         )
 
         self.button_next.pack(side="right", padx=10)
@@ -122,72 +117,106 @@ class ClassifyAudioChunks(Frame):
         self.button_replay.pack(side="bottom", fill="x")
 
         # Add text box
-        self.textbox = ttk.Entry(self, text="Audio File: ")
-        self.textbox.pack(side="bottom", fill="x", padx=10, pady=10)
+        self.classification_var = StringVar(value="")
 
-        controller.bind("<Return>", self.next)
+        self.classification_var = ttk.Entry(self, textvariable=self.classification_var)
+        self.classification_var.pack(side="bottom", fill="x", padx=10, pady=10)
 
-        controller.bind(
+        self.button_prev.config(state="disabled")
+        self.button_next.config(state="disabled")
+
+    def open_folder(self) -> None:
+        """
+        Opens a folder and starts classifying the audio files in it.
+        """
+        self.controller.bind("<Return>", self.next)
+
+        self.controller.bind(
             "<KeyPress-Shift_L>", lambda event: setattr(self, "is_shift_pressed", True)
         )
-        controller.bind(
+        self.controller.bind(
             "<KeyRelease-Shift_L>",
             lambda event: setattr(self, "is_shift_pressed", False),
         )
 
-        self.audio_queue = AudioQueue()
+        folder_path = filedialog.askdirectory(
+            initialdir="./audio/", title="Select audio folder to classify from"
+        )
+
+        self.audio_queue = AudioQueue(folder_path)
+        self.csv_controller = CSVController()
+
+        self.csv_controller.open_folder(folder_path)
+
+        self.button_next.config(state="enabled")
+
+        self.button_replay.config(text="Play again", command=self.play_again)
+
+        self.classification_var.set(self.csv_controller.get_classification(1))
 
         self.update_button_states()
 
-    def next(self):
+    def next(self, event=None) -> None:
         """
-        Go to the next audio file.
+        next is a method that goes to the next audio file.
 
-        If the shift key is pressed, it will go to the next unclassified audio file.
+        If the shift key is pressed, it will go to the next audio file.
         """
         if self.is_shift_pressed:
             self.prev()
             return
 
+        if self.allow_next:
+            self.csv_controller.set_classification(
+                self.audio_queue.current_index, self.classification_var.get()
+            )
+            threading.Thread(target=self.audio_queue.next).start()
+            self.classification_var.set(
+                self.csv_controller.get_classification(self.audio_queue.current_index)
+            )
         self.update_button_states()
-        threading.Thread(target=self.audio_queue.next).start()
-        print(self.audio_queue.current_index)
 
-    def prev(self):
+    def prev(self, event=None) -> None:
         """
         Go to the previous audio file.
-
-        If the shift key is pressed, it will go to the previous unclassified audio file.
         """
-        self.update_button_states()
-        threading.Thread(target=self.audio_queue.prev).start()
-        print(self.audio_queue.current_index)
+        if self.allow_prev:
+            self.csv_controller.set_classification(
+                self.audio_queue.current_index, self.classification_var.get()
+            )
+            threading.Thread(target=self.audio_queue.prev).start()
+            self.classification_var.set(
+                self.csv_controller.get_classification(self.audio_queue.current_index)
+            )
 
-    def play_again(self):
+        self.update_button_states()
+
+    def play_again(self) -> None:
         """
         Plays the current audio file again.
         """
         threading.Thread(target=self.audio_queue.play_current).start()
 
-    def update_button_states(self):
+    def update_button_states(self) -> None:
         """
         Update the state of the 'previous' and 'next' buttons based on the current position in
         the audio queue.
 
         This method checks the current index of the audio queue and enables or disables the
         'previous' and 'next' buttons accordingly.
-        If the current index is at the beginningof the queue, the 'previous' button is disabled.
+        If the current index is at the beginning of the queue, the 'previous' button is disabled.
         If the current index is at the end of the queue, the 'next' button is disabled.
         The method also calls the update() function to refresh the user interface.
         """
-        if self.audio_queue.current_index == 0:
-            self.button_prev.config(state="disabled")
-        else:
-            self.button_prev.config(state="enabled")
+        print(self.audio_queue.current_index)
 
-        if self.audio_queue.current_index > len(self.audio_queue.audio_list) - 2:
-            self.button_next.config(state="disabled")
-        else:
-            self.button_next.config(state="enabled")
+        self.allow_prev = self.audio_queue.current_index > 1
+
+        self.allow_next = self.audio_queue.current_index < len(
+            self.audio_queue.audio_list
+        )
+
+        self.button_next.config(state="enabled" if self.allow_next else "disabled")
+        self.button_prev.config(state="enabled" if self.allow_prev else "disabled")
 
         self.update()
