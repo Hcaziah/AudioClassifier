@@ -1,2 +1,5 @@
 audio/
 *.pyc
+__pycache__/
+.vscode/
+app.log
