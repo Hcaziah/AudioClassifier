@@ -1,6 +1,6 @@
-# Audio Chunk Generator
+# AudioClassifier
 
-The Audio Chunk Generator is a GUI application built using the Tkinter library in Python. It allows you to split audio files into smaller chunks based on silence detection. This can be useful for tasks such as transcribing long audio recordings or processing audio files in smaller segments.
+This program allows ease of classifying audio for training data for machine learning. Also has split by silence functionality for large single audio files.
 
 ## Features
 
@@ -20,21 +20,21 @@ The Audio Chunk Generator is a GUI application built using the Tkinter library i
 1. Clone the repository:
 
    ```
-   git clone https://github.com/your-username/audio-chunk-generator.git
+   git clone https://github.com/Hcaziah/AudioClassifier.git
    ```
 
 2. Install the required dependencies:
 
    ```
-   pip install pydub
+   pip install pydub simpleaudio
    ```
 
 ## Usage
 
-1. Run the application by executing the `audio_chunk_generator.py` file:
+1. Run the application by executing the `main.py` file:
 
    ```
-   python audio_chunk_generator.py
+   python main.py
    ```
 
 2. Select an input audio file by clicking the "Open File" button.
