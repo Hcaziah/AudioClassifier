@@ -12,20 +12,16 @@ logging.basicConfig(
 
 
 class MainApplication(Tk):
-    """
-    MainApplication MainApplication is a class for creating a main application window.
-
-    Parameters
-    ----------
-    Tk : Tk
-        Tk is a class for creating a main application window.
-    """
+    """The main application window for the Audio Crop GUI."""
 
     def __init__(self) -> None:
+        """Initialize the MainApplication."""
+        logging.info("Initializing MainApplication")
         Tk.__init__(self)
 
         self.title("Audio Crop")
         self.geometry("800x300")
+        self.resizable(False, False)
 
         # creating a container for all the frames
         container = Frame(self, bg="white")
@@ -70,6 +66,7 @@ class MainApplication(Tk):
 
         # iterating through a tuple consisting
         # of the different page layouts
+        # Initialize frame of this object from startpage page1 page2.
         for F in (MainPage, AudioChunkGenerator, ClassifyAudioChunks):
             frame = F(container, self)
 
@@ -80,36 +77,36 @@ class MainApplication(Tk):
 
             frame.grid(row=0, column=0, sticky="nsew")
         self.show_frame(MainPage)
+        logging.info("MainApplication initialized successfully")
 
-    def show_frame(self, cont) -> None:
-        """
-        show_frame show_frame is a function for showing a frame.
+    def show_frame(self, controller) -> None:
+        """Raise the specified frame to the top.
 
-        Parameters
-        ----------
-        cont : _tkinter.Tk
-            _tkinter.Tk is a class for creating a main application window.
+        Args:
+            controller: The frame to be raised.
         """
-        frame = self.frames[cont]
+        logging.info(f"Showing frame: {controller.__name__}")
+        frame = self.frames[controller]
         frame.tkraise()
 
 
 class MainPage(Frame):
-    """
-    MainPage MainPage is a class for creating a main page.
-
-    Parameters
-    ----------
-    Frame : Frame
-        Frame is a class for creating a main page.
-    """
+    """The main page of the Audio Crop application."""
 
     def __init__(self, parent, controller=None) -> None:
+        """Initialize the MainPage.
+
+        Args:
+            parent: The parent widget.
+            controller: The controller object.
+        """
+        logging.info("Initializing MainPage")
         Frame.__init__(self, parent)
         main_menu = ttk.Label(
             self, text="Main Page", font=("Helvetica", 18), padding=10
         )
         main_menu.pack()
+        logging.info("MainPage initialized successfully")
 
 
 app = MainApplication()

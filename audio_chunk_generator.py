@@ -3,39 +3,33 @@ import pathlib
 import threading
 from pydub import AudioSegment
 from pydub.silence import split_on_silence
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(message)s",
+    handlers=[logging.FileHandler("app.log"), logging.StreamHandler()],
+)
 
 
 class AudioChunkGenerator(Frame):
-    """
-    A class for generating audio chunks.
+    """GUI application for splitting audio files into chunks.
 
-    This class provides a graphical user interface for selecting an audio file and splitting
-    it into smaller chunks. The output folder for the chunks can be selected by the user.
-    The class also provide options for customizing the splitting process, such as selecting
-    the size of each chunk.
-
-    Attributes
-    ----------
-        audio_file : str
-            The path to the audio file to be split.
-        output_folder : str
-            The path to the output folder for the audio chunks.
-        string_output_path : StringVar
-            A tkinter StringVar for displaying the output folder path in the GUI.
-        split_audio_thread : Thread
-            A thread for splitting the audio file into chunks.
-        checkbox_values : dict
-            A dictionary of checkbox values for customizing the splitting process.
-
-    Methods
-    -------
-        open_folder()
-            Opens a dialog for selecting the output folder.
-        split_audio()
-            Starts the audio splitting process in a separate thread.
+    Attributes:
+        audio_file (str): The path to the input audio file.
+        output_folder (str): The path to the output folder for the generated audio chunks.
+        string_output_path (StringVar): String variable for displaying the output folder path.
+        split_audio_thread (threading.Thread): Thread for splitting the audio file.
+        split_audio_button (ttk.Button): Button for initiating the audio splitting process.
     """
 
     def __init__(self, parent, controller=None) -> None:
+        """Initializes the AudioChunkGenerator frame.
+
+        Args:
+            parent: The parent widget.
+            controller: The controller object.
+        """
         Frame.__init__(self, parent)
         self.audio_file = None
 
@@ -130,16 +124,10 @@ class AudioChunkGenerator(Frame):
             width=150,
         )
         self.split_audio_button.grid(row=2, column=0, padx=10, pady=10)
+        logging.info("AudioChunkGenerator initialized.")
 
     def open_file(self) -> str:
-        """
-        open_file opens a dialog for selecting an audio file.
-
-        Returns
-        -------
-        str
-            The path to the selected audio file.
-        """
+        """Opens a file dialog to select an audio file."""
         self.audio_file = filedialog.askopenfilename(
             initialdir=".",
             title="Select Audio File",
@@ -157,14 +145,7 @@ class AudioChunkGenerator(Frame):
             self.split_audio_button.config(state="disabled")
 
     def open_folder(self) -> str:
-        """
-        open_folder opens a dialog for selecting the output folder.
-
-        Returns
-        -------
-        str
-            The path to the selected output folder.
-        """
+        """Opens a folder dialog to select the output folder."""
         self.output_folder = filedialog.askdirectory(
             initialdir=".", title="Select Output Folder"
         )
@@ -190,11 +171,13 @@ class AudioChunkGenerator(Frame):
 
         audio = AudioSegment.from_file(self.audio_file)
 
+        logging.info(f"Splitting {self.audio_file} into {folder_name}...")
         self.split_audio_button.config(text="Splitting...", state="disabled")
         self.update()
 
         chunks = split_on_silence(audio, min_silence_len=500, silence_thresh=-48)
 
+        logging.info(f"Exporting {len(chunks)} chunks...")
         self.split_audio_button.config(
             text=f"Exporting {len(chunks)} chunks...", state="disabled"
         )
@@ -208,6 +191,8 @@ class AudioChunkGenerator(Frame):
             audio_chunk.export(
                 f"{self.string_output_path.get()}/{folder_name}/{str(i).zfill(4)}.mp3"
             )
+            logging.info(f"Exported {str(i).zfill(4)}.mp3 to {folder_name}...")
 
+        logging.info(f"Finished exporting {len(chunks)} chunks...")
         self.split_audio_button.config(text="Split Audio", state="normal")
         self.update()

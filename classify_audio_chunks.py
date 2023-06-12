@@ -4,14 +4,31 @@ from tkinter import Frame, ttk, filedialog, StringVar
 import simpleaudio
 from file_controller import FileController
 from csv_controller import CSVController
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(message)s",
+    handlers=[logging.FileHandler("app.log"), logging.StreamHandler()],
+)
 
 
 class AudioQueue:
-    """
-    A class for managing a queue of audio files.
+    """Represents a queue of audio files.
+
+    Attributes:
+        folder_path (str): The path to the folder containing audio files.
+        current_index (int): The index of the currently playing audio file.
+        audio_list (list): A list of FileController instances representing audio files.
+        _playback (simpleaudio.PlayObject): The current audio playback object.
     """
 
     def __init__(self, folder_path=None) -> None:
+        """Initializes the AudioQueue with a folder path and sets up the audio list.
+
+        Args:
+            folder_path (str, optional): The path to the folder containing audio files.
+        """
         self.folder_path = folder_path
         self.current_index = 1
         self.audio_list = []
@@ -20,13 +37,10 @@ class AudioQueue:
         for file in os.listdir(self.folder_path):
             if file.endswith(".csv"):
                 continue
-
             self.audio_list.append(FileController(f"{self.folder_path}\\{file}"))
 
     def play_current(self) -> None:
-        """
-        play_current is a method that plays the current audio file.
-        """
+        """Plays the currently selected audio file."""
         segment = self.audio_list[self.current_index - 1].audio_file
 
         self._playback = simpleaudio.play_buffer(
@@ -37,56 +51,46 @@ class AudioQueue:
         )
 
     def stop_current(self) -> None:
-        """
-        stop_current is a method that stops the current audio file.
-        """
+        """Stops the playback of the current audio file."""
         if self._playback:
             self._playback.stop()
 
     def next(self) -> None:
-        """
-        next is a method that goes to the next audio file.
-        """
+        """Moves to the next audio file in the queue and plays it."""
+        logging.info("Moving to next audio file")
         self.stop_current()
         self.current_index += 1
         self.play_current()
 
-    def prev(self) -> int:
+    def prev(self) -> None:
+        """Moves to the previous audio file in the queue and plays it.
+
+        Returns:
+            int: The index of the current audio file after moving to the previous one.
         """
-        prev is a method that goes to the previous audio file.
-        """
+        logging.info("Moving to previous audio file")
         self.stop_current()
         self.current_index -= 1
         self.play_current()
 
 
 class ClassifyAudioChunks(Frame):
-    """
-    A class for classifying audio files.
+    """Represents a GUI frame for classifying audio chunks.
 
-    This class represents a GUI interface for classifying audio files. It inherits from the
-    tkinter.Frame class and takes two parameters in the constructor: parent and controller.
-
-    Attributes
-    ----------
-    current_index : int
-        The index of the current audio file.
-    is_shift_pressed : bool
-        Whether the shift key is currently pressed.
-    textbox : tkinter.Entry
-        The textbox for entering the audio file name.
-
-    Methods
-    -------
-    next()
-        Goes to the next audio file.
-    prev()
-        Goes to the previous audio file.
-    play_again()
-        Plays the current audio file again.
+    Attributes:
+        controller: The controller for the GUI frame.
+        audio_queue (AudioQueue): The audio queue for managing audio files.
+        csv_controller (CSVController): The controller for handling CSV files.
+        is_shift_pressed (bool): A flag indicating whether the Shift key is currently pressed.
     """
 
     def __init__(self, parent, controller=None) -> None:
+        """Initializes the ClassifyAudioChunks GUI frame.
+
+        Args:
+            parent: The parent widget.
+            controller: The controller for the GUI frame.
+        """
         Frame.__init__(self, parent)
 
         self.controller = controller
@@ -119,16 +123,16 @@ class ClassifyAudioChunks(Frame):
         # Add text box
         self.classification_var = StringVar(value="")
 
-        self.classification_var = ttk.Entry(self, textvariable=self.classification_var)
-        self.classification_var.pack(side="bottom", fill="x", padx=10, pady=10)
+        self.classification_Entry = ttk.Entry(
+            self, textvariable=self.classification_var
+        )
+        self.classification_Entry.pack(side="bottom", fill="x", padx=10, pady=10)
 
         self.button_prev.config(state="disabled")
         self.button_next.config(state="disabled")
 
     def open_folder(self) -> None:
-        """
-        Opens a folder and starts classifying the audio files in it.
-        """
+        """Opens a file dialog to select a folder containing audio files."""
         self.controller.bind("<Return>", self.next)
 
         self.controller.bind(
@@ -142,6 +146,8 @@ class ClassifyAudioChunks(Frame):
         folder_path = filedialog.askdirectory(
             initialdir="./audio/", title="Select audio folder to classify from"
         )
+
+        logging.info(f"Selected folder: {folder_path}")
 
         self.audio_queue = AudioQueue(folder_path)
         self.csv_controller = CSVController()
@@ -157,10 +163,10 @@ class ClassifyAudioChunks(Frame):
         self.update_button_states()
 
     def next(self, event=None) -> None:
-        """
-        next is a method that goes to the next audio file.
+        """Moves to the next audio file and updates the classification.
 
-        If the shift key is pressed, it will go to the next audio file.
+        Args:
+            event: The event that triggered the method (default: None).
         """
         if self.is_shift_pressed:
             self.prev()
@@ -177,8 +183,10 @@ class ClassifyAudioChunks(Frame):
         self.update_button_states()
 
     def prev(self, event=None) -> None:
-        """
-        Go to the previous audio file.
+        """Moves to the previous audio file and updates the classification.
+
+        Args:
+            event: The event that triggered the method (default: None).
         """
         if self.allow_prev:
             self.csv_controller.set_classification(
@@ -192,23 +200,12 @@ class ClassifyAudioChunks(Frame):
         self.update_button_states()
 
     def play_again(self) -> None:
-        """
-        Plays the current audio file again.
-        """
+        """Plays the current audio file again."""
         threading.Thread(target=self.audio_queue.play_current).start()
 
     def update_button_states(self) -> None:
-        """
-        Update the state of the 'previous' and 'next' buttons based on the current position in
-        the audio queue.
-
-        This method checks the current index of the audio queue and enables or disables the
-        'previous' and 'next' buttons accordingly.
-        If the current index is at the beginning of the queue, the 'previous' button is disabled.
-        If the current index is at the end of the queue, the 'next' button is disabled.
-        The method also calls the update() function to refresh the user interface.
-        """
-        print(self.audio_queue.current_index)
+        """Updates the state (enabled or disabled) of the navigation buttons."""
+        logging.info(f"Current index: {self.audio_queue.current_index}")
 
         self.allow_prev = self.audio_queue.current_index > 1
 

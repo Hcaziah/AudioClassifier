@@ -6,5 +6,9 @@
   "[python]": {
     "editor.defaultFormatter": "ms-python.black-formatter"
   },
-  "python.formatting.provider": "none"
+  "python.formatting.provider": "none",
+  "docify.commentService.docstringFormat": "Google",
+  "docify.commentService.sidePanelReviewMode": true,
+  "docify.commentService.moreExpressiveComments": false,
+  "docify.commentService.inlineComments": false
 }
